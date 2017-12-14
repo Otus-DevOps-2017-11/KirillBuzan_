@@ -1,4 +1,4 @@
-Home Work#5 Buzan Kirill
+Homework#5 Buzan Kirill
 -----------------------
 <table>
   <tr>
@@ -8,16 +8,16 @@ Home Work#5 Buzan Kirill
   </tr>
   <tr>
     <td>
-      Host
+      <b>Host</b>
     </td>
     <td>
-      Zone
+      <b>Zone</b>
     </td>
     <td>
-      Internal IP
+      <b>Internal IP</b>
     </td>
     <td>
-      External IP
+      <b>External IP</b>
     </td>
   </tr>
   <tr>
@@ -98,3 +98,5 @@ $ ssh -J appuser@146.148.20.172 appuser@10.132.0.3
 ```bash
 $ ssh internalhost
 ```
+**********
+После установки соединения VPN (Virtual Private Network) появляется возможность подключения к удаленному серверу 10.132.0.3 напрямую с локальной машины. Создается частаня виртуальная сеть.
