@@ -1,3 +1,32 @@
+Homework#6 Buzan Kirill
+-----------------------
+Из задания не ясно, как предполагается добавить скрипт при создании инстанса: из локальной дирректории или из githuba.
+Попробовал оба способа.
+Ссылка на документацию: https://cloud.google.com/compute/docs/startupscript
+1) Скрипт из локального хранилища:
+```gcloud
+gcloud compute instances create reddit-app \
+  --boot-disk-size=10GB \
+  --image-family ubuntu-1604-lts \
+  --image-project=ubuntu-os-cloud \
+  --machine-type=g1-small \
+  --tags puma-server \
+  --restart-on-failure
+  --metadata-from-file startup-script=startup.sh
+  ```
+2) Скрипт из репозитория github. Ссылка на файл должна быть RAW, иначе не подхватит.
+```gcloud
+gcloud compute instances create reddit-app \
+  --boot-disk-size=10GB \
+  --image-family ubuntu-1604-lts \
+  --image-project=ubuntu-os-cloud \
+  --machine-type=g1-small \
+  --tags puma-server \
+  --restart-on-failure
+  --metadata startup-script-url=https://raw.githubusercontent.com/Otus-DevOps-2017-11/KirillBuzan_infra/Infra-2/startup.sh
+```
+Для всех файлов *.sh права 750
+
 Homework#5 Buzan Kirill
 -----------------------
 <table>
