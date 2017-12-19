@@ -11,7 +11,7 @@ gcloud compute instances create reddit-app \
   --image-project=ubuntu-os-cloud \
   --machine-type=g1-small \
   --tags puma-server \
-  --restart-on-failure
+  --restart-on-failure \
   --metadata-from-file startup-script=startup.sh
   ```
 2) Скрипт из репозитория github. Ссылка на файл должна быть RAW, иначе не подхватит.
@@ -22,7 +22,7 @@ gcloud compute instances create reddit-app \
   --image-project=ubuntu-os-cloud \
   --machine-type=g1-small \
   --tags puma-server \
-  --restart-on-failure
+  --restart-on-failure \
   --metadata startup-script-url=https://raw.githubusercontent.com/Otus-DevOps-2017-11/KirillBuzan_infra/Infra-2/startup.sh
 ```
 Для всех файлов *.sh права 750
