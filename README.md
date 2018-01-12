@@ -1,3 +1,129 @@
+Homework#8 Buzan Kirill
+-----------------------
+**Самостятельное задание выполнено:**
+1. Определил input переменную *private_key_path* для приватного ключа.
+   Файл: variables.tf
+   ```terraform
+   variable private_key_path {
+      description = "Path to the private key used for ssh access"
+   }
+   ```
+   Файл: terraform.tfvars Но так как он не публикуется. То пример заполнения можно увидеть в файле: terraform.tfvars.example
+   ```terraform
+   private_key_path = "~/.ssh/appuser"
+   ```
+2. Определил input переменную *zone* для задания зоны в ресурсе "google_compute_instance" "app".
+   Файл: variables.tf
+   ```terraform
+   variable zone {
+     description = "Zone"
+     default     = "europe-west1-b"
+   }
+   ```
+   Значение в файле: terraform.tfvars не задано, в проекте используется значение по умолчанию.
+3. Произведено форматирвоание с помощью команды **terrafrom frm** Terraform самостоятельно ищет файл с расширением .tf и производит форматирование в каждом файле.
+4. Создан файл terraform.tfvars.example для примера заполнения файла terraform.tfvars с реальными данными.
+
+**Задание со звездочкой**
+Если какой-то ключ добавлен "руками", без участия Terraform, то Terraform о нем ничего не знает и просто затирает этот ключ. 
+Это нужно помнить и судя по всему управлять ключами программно не является хорошей практикой.
+Может быть в некоторых условиях это будет удобно, но не в условиях промышленной высонагруженной среды.
+
+Вставку нескольких ключей я выполнил так: 
+```terraform
+resource "google_compute_project_metadata" "users" {
+	metadata {
+	   ssh-keys = "appuser2:${file(var.public_key_path)}\nappuser1:${file(var.public_key_path)}\nappuser:${file(var.public_key_path)}"
+	}
+}
+```
+Но мне хотелось первоначально создать переменную, где будут перечислены пользователей, а с помощью terraform будут добавлятся пары
+user и его ключ. Ключ хотел использовать один.
+Пытался сделать так:
+Переменная users:
+```terraform
+users = "appuser2,appuser1,appuser"
+
+resource "google_compute_project_metadata" "users" {
+	count = "${length(split(",", var.users))}"
+	metadata {
+	   ssh-keys = "${element(split(",", var.users), count.index)}:${file(var.public_key_path)}"
+	}
+}
+```
+Все казалось бы логично и даже команда terraform plan выдавала результат, что будут добавлены три записи, так как я создавал 3 пользователя.
+``` terraform
+	+ google_compute_project_metadata.users[0]
+	id:                <computed>
+	metadata.%:        "1"
+	metadata.ssh-keys: "appuser2:ssh-rsa ****
+	- - - 
+	+ google_compute_project_metadata.users[1]
+	id:                <computed>
+	metadata.%:        "1"
+	metadata.ssh-keys: "appuser1:ssh-rsa ****
+	- - -
+	+ google_compute_project_metadata.users[2]
+	id:                <computed>
+	metadata.%:        "1"
+	metadata.ssh-keys: "appuser:ssh-rsa ****
+	- - -
+	Plan: 3 to add, 0 to change, 0 to destroy.
+```
+Но при выполнении команды apply, terraform выдает ошибку в самом конце:
+``` terraform
+Error: Error applying plan:
+1 error(s) occurred:
+* google_compute_project_metadata.users[1]: 1 error(s) occurred:
+* google_compute_project_metadata.users.1: Error, key 'ssh-keys' already exists
+in project 'lucky-almanac***'
+```
+Terraform сам пытается перезаписать свои же изменения. Получается, что нужно заранее подготовить строку для добавления и сразу внести все значения целиком.
+Убил я на это дело еще пол дня... Но ничего не получилось. Пытался через template реализацию сделать:
+``` terraform
+   data "template_file" "users_sshkey" {
+      template = "$${users_key}"
+      vars {
+         count = "${length(split(",", var.users))}"
+         users_key = "$${users_key}\n${element(split(",", var.users), count.index)}:${file(var.public_key_path)}"   
+      }
+   }
+   resource "google_compute_project_metadata" "users" {
+      metadata {
+         ssh-keys = "${data.template_file.users_sshkey.rendered}"
+      }
+   }
+```
+Но terraform не помнит, что было в переменной на предыдущей операции. 
+Как мне нужно было выполнить реализацию? Я не верю, что это не возможно сделать)))
+
+При работе с проектом натолкнулся на интересный реурс. Много примеров:
+https://blog.gruntwork.io/terraform-tips-tricks-loops-if-statements-and-gotchas-f739bbae55f9
+Отсутствие нормальных циклов и использование count показалось очень специфичным. На просторах интернета я не нашел больше вариантов
+реализации циклов.
+
+**Задание со звездочкой 2**
+Задание огонь. Это пока самая времязатратное домашнее задание из всех) Думал, что меня terraform победит. Но у terraforma хорошая документация оказалась по балансировке. С "циклом" познкомился еще на предыдущем шаге выполнения, поэтому создание инстансов выполнил в цикле. Для такого такой задачи count более, чем достаточно.
+Балансиорвку настроил, но приложение на каждом сервере свое и при этом они имею свою собственную БД, поэтому получается, что работать с таким приложением пользовтелю не представляется возможным, но зато у него неплохая отказоустойчивость. 
+Каждые 3 секунды, происходит переключение между серверами, таковы настройки, происходит отключение сессии. Но на одном сервере я успел создать пост, поэтому пост, то появляется, то исчезает при обнолвении страницы.
+
+Когда задавал имя инстанса, столкнулся с ошибкой. 
+``` terraform
+* google_compute_instance.app: Error creating instance: googleapi: Error 400: In
+valid value for field 'resource.name': 'reddit-app_0'. Must be a match of regex
+'(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)', invalid
+```
+Использовал символ "_". Что вызвало ошибку. В копилку знаний.
+
+Для вывода информации об IP-адресе балансировщика в outputs добавил переменную balancer_external_ip:
+Outputs:
+
+app_external_ip = [
+    35.187.189.128,
+    104.199.103.253
+]
+balancer_external_ip = 35.227.200.95
+
 Homework#7 Buzan Kirill
 -----------------------
 1. Для выполнения задания №1 объявлены следующие переменные:
