@@ -1,0 +1,33 @@
+{
+   "variables": {
+	     "project_id": null,
+		 "source_image_family": "ubuntu-1604-lts",
+		 "_comment": "The machine_type default value is f1-micro, but you can set any value when defining machine_type variable",
+		 "machine_type": "f1-micro"
+   },
+   "_comment": "Tags - array of string!Tags apply only to the VM at the stage of creating the image",   
+   "builders": [
+      {
+	  "type": "googlecompute",
+	  "project_id": "{{user `project_id`}}",
+	  "image_name": "reddit-db-base-{{timestamp}}",
+	  "image_family": "reddit-db-base",
+	  "image_description": "OS with MongoDB. Published on 2018-01-07",
+	  "source_image_family": "{{user `source_image_family`}}",
+	  "zone": "europe-west1-b",
+	  "ssh_username": "appuser",
+	  "machine_type": "{{user `machine_type`}}",
+	  "disk_size": "10",
+	  "disk_type": "pd-standard",
+	  "network": "default",
+	  "tags": ["puma-server"]
+	  }
+	],
+    "provisioners": [
+	   {
+	      "type": "shell",
+		  "scripts": "scripts/install_mongodb.sh",
+		  "execute_command": "sudo {{.Path}}"
+	   }
+	]
+}
