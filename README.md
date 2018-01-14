@@ -171,7 +171,6 @@ terraform {
     prefix  = "terraform/state"
 
   }
-
 }
 
 2. Файл state перенесен в другой каталог, осуществлена проверка, что файл state terraform ищет в GCS и что он ялвялется общим для stage и prod.
