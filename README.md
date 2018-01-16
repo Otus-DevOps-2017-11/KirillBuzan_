@@ -1,3 +1,233 @@
+Homework#9 Buzan Kirill
+-----------------------
+#### Импорт существующей инфраструктуры в Terraform
+
+Импорт правила firewall default-allow-ssh выполнен корректо.
+Но были замечены отличия от презентации:
+
+Происходит не изменение, а удаление с последующим добавлением.Используется последняя версия продукта.
+```terrafrom
+-/+ destroy and then create replacement
+
+Terraform will perform the following actions:
+
+-/+ google_compute_firewall.firewall_ssh (new resource required)
+      id:                       "default-allow-ssh" => <computed> (forces new re
+source)
+      allow.#:                  "1" => "1"
+      allow.803338340.ports.#:  "1" => "1"
+      allow.803338340.ports.0:  "22" => "22"
+      allow.803338340.protocol: "tcp" => "tcp"
+      description:              "Allow SSH from anywhere" => "Allow SSH from any
+where.HM#9"
+      destination_ranges.#:     "0" => <computed>
+      name:                     "default-allow-ssh" => "default-allow-ssh"
+      network:                  "https://www.googleapis.com/compute/v1/projects/
+lucky-almanac-188814/global/networks/default" => "default"
+      priority:                 "65534" => "1000" (forces new resource)
+      project:                  "lucky-almanac-188814" => <computed>
+      self_link:                "https://www.googleapis.com/compute/v1/projects/
+lucky-almanac-188814/global/firewalls/default-allow-ssh" => <computed>
+      source_ranges.#:          "1" => "1"
+      source_ranges.1080289494: "0.0.0.0/0" => "0.0.0.0/0"
+Plan: 1 to add, 0 to change, 1 to destroy.
+```
+
+#### Структуризация ресурсов
+
+С помощью Packer создны новые образЫ:
+1) reddit-app-base
+2) reddit-db-base
+на основе ОС ubuntu 16.04
+Образ 1 - содержит установелнный Ruby
+ОБраз 2 - содержит установонную СУБД MongoDB.
+Файлы конфигурации app.json и db.json соответственно добавлены в каталог packer/
+
+В резльутате выолнения данного пункта, конфигцрационный файл main.tf был разбит на три части:
+1) app.tf - равертывание VM из образа reddit-app-base
+2) db.tf - развертывание VM из образа reddit-db-base
+3) vpc.tf - правило фаервола для ssh доступа. Применяется для всех инстнасов нашей сети.
+
+Файл main.tf остался. Он содержит определение провайдера. 
+
+Проверка прошла успешно. Хосты доступны. На них установлено необходимое ПО.
+
+```bash
+reddit-app:
+gcp_buzan@reddit-app:~$ ruby -v
+ruby 2.3.1p112 (2016-04-26) [x86_64-linux-gnu]
+gcp_buzan@reddit-app:~$ bundle -v
+Bundler version 1.11.2
+```
+```bash
+reddit-db:
+gcp_buzan@reddit-db:~$ sudo systemctl status mongod
+? mongod.service - High-performance, schema-free document-oriented database
+   Loaded: loaded (/lib/systemd/system/mongod.service; enabled; vendor preset: enabled)
+   Active: active (running) since Sun 2018-01-07 05:25:59 UTC; 4min 8s ago
+     Docs: https://docs.mongodb.org/manual
+ Main PID: 1208 (mongod)
+    Tasks: 19
+   Memory: 52.2M
+      CPU: 1.578s
+   CGroup: /system.slice/mongod.service
+           L-1208 /usr/bin/mongod --quiet --config /etc/mongod.conf
+Jan 07 05:25:59 reddit-db systemd[1]: Started High-performance, schema-free document-oriented database.
+```
+Файлы переименованы в *.tf_backup
+
+#### Модули
+
+Создан каталог modules, который содержит подкаталоги:
+1) app - содержит модуль приложения
+2) db - содержит модуль БД. 
+3) vpc - содержит модуль настроек фаервола 
+
+Каждый каталог с модулями содежрит:
+main.tf - главный файл
+outputs.tf - входные переменные
+variables.tf - выходные переменные
+
+Изменен файл main.tf - в него добавлены вызовы модулей.
+Terraform еще ничего не знает о созданных модулей, мы только определили пути к модулям.
+Для того чтобы terraform загрузил модули к себе, воспользуемся командой terraform get
+После чего terraform создаст в своем каталоге .terraform подкаталог module куда поместит в нашем случае ссылки (ярлыки) на каталог с модулями, так как модули у нас располагаются локально, в случае, если модуль располагается удаленно, то terraform скопирует содержимое модуля целиком, забегая вперед, как это произошло с модуляем SweetOps-terraform-google-storage-bucket
+
+Проверка прошла успешно. Хосты доступны. Правила firewall созданы.
+Добавил свой description
+description = "Allow SSH from anywhere.HM#9"
+для firewall чтобы было 100% видны изменения
+
+#### Параметризация модулей
+
+* Если ip не мой, то ошибка подключения по ssh
+ssh: connect to host 35.187.189.128 port 22: Connection timed out
+
+* Если ip мой, то подключение проходит успешно
+
+#### Переиспользование модулей
+Произвел разделение на prod и stage. 
+stage доступен с любым ip-адресом, prod только с указанного в конфигурационном файле
+
+Параметеризированы следующие конфигурации модулей:
+1. app:
+  
+  |Переменная|Описание|
+  |----------|--------|
+  |machine_type = "${var.machine_type}"| Тип машины|
+  |zone         = "${var.zone}"| Зона|
+  |tags         = "${var.target_tags}"| Тэги сети. Применяется для инстанса|
+  |image = "${var.app_disk_image}"| Образ из которого будет развернута VM app|
+  |sshKeys = "appuser:${file(var.public_key_path)}"|Путь до открытой части ключа|
+  |private_key = "${file(var.private_key_path)}"| Путь до закрытой части ключа|
+  |ports    = "${var.firewall_puma_port}"| Порт на котором доступно приложение после развертывания|
+  |source_ranges = "${var.source_ranges}"| Диапазон портов на который применяется правило allow-puma-default в firewall|
+  |target_tags   = "${var.target_tags}"| Тэги сети. Применяется для правила allow-puma-default в firewall|
+
+2. db:
+
+  |Переменная|Описание|
+  |----------|--------|
+  |machine_type = "${var.machine_type}"| Тип машины|
+  |zone         = "${var.zone}"| Зона|
+  |tags         = "${var.target_tags}"| Тэги сети. Применяется для инстанса|
+  |image = "${var.db_disk_image}"| Образ из которого будет развернута VM db|
+  |sshKeys = "appuser:${file(var.public_key_path)}"|Путь до открытой части ключа|
+  |ports    = "${var.firewall_mongo_port}"| Путь до закрытой части ключа|
+  |target_tags = "${var.target_tags}"| Тэги сети. Применяется для правила allow-mongo-default в firewall|
+  |source_tags = "${var.source_tags}"| Диапазон портов на который применяется правило allow-mongo-default в firewall|
+
+3. vpc:
+
+|Переменная|Описание|
+|----------|--------|
+|source_ranges = "${var.source_ranges}"| Диапазон портов на который применяется правило default-allow-ssh в firewall|
+
+4. Файл main.tf prod и stage.
+
+|Переменная|Описание|
+|----------|--------|
+|variable project| Имя проекта GCP|
+|variable region| Регион|
+|variable public_key_path| Путь до публичного ключа|
+|variable private_key_path| Путь до закрытого ключа|
+|variable zone| Зона|
+|variable app_disk_image| Имя образа на сонове которого будет создана VM APP|
+|variable db_disk_image| Имя образа на сонове которого будет создана VM DB|
+
+Так же создана локальная переменная *local.access_db_tags*
+Она содержит тэги для взаимодействия между DB и APP серверами. 
+Соответственно у app это target_tags, а у DB source_tags
+
+Ко всем файлам применено форматирование terrafform fmt
+
+#### Задание со звездочкой *
+Добавлено хранение state файлв в GCS. Создан сегмент: terraform-hm9. 
+Далее используется слудющий путь: terraform/state/default.tfstate.
+В файлы main.tf в каталогах prod и stage добавлены строки:
+```terraform
+terraform {
+
+  backend "gcs" {
+
+    bucket  = "terraform-hm9"
+
+    prefix  = "terraform/state"
+
+  }
+}
+```
+2. Файл state перенесен в другой каталог, осуществлена проверка, что файл state terraform ищет в GCS и что он ялвялется общим для stage и prod.
+3. При попытке внести изменения одновременно. Блокировка:
+Error: Error locking state: Error acquiring the state lock: writing "gs://terraf
+orm-hm9/terraform/state/default.tflock" failed: googleapi: Error 412: Preconditi
+on Failed, conditionNotMet
+Lock Info:
+  ID:        09a2d2d1-5c12-ef54-77cc-130227e5bd14
+  Path:
+  Operation: OperationTypeApply
+  Who:       KIRILL-ПК\KIRILL@KIRILL-ПК
+  Version:   0.11.1
+  Created:   2018-01-07 09:42:04.2955193 +0000 UTC
+  Info:
+  
+  
+#### Задание со звездочкой 2
+Добавлены provisioner в модуль APP для создания сервиса puma.services. А так же установки и запуску приложения reddit с помощью puma.services.
+Для подключения к БД приложения параметеризирован адресс и порт БД variable database_url
+Для того чтобы сформировать файл puma.services с заданными значнеиями, необходимо воспользоваться шаблонами.
+Создан файл puma.service.tlp на основе файла puma.service который использовался в предыдущих заданиях. 
+Притерпел изменения только параметр ExecStart:
+ExecStart=/bin/bash -lc 'DATABASE_URL=${database_address} puma'
+
+В него добавлена переменная задающая URL БД. Значение переменной может бытть задано пользователем или использоваться значение по умолчанию. 
+
+Создание, получение значения переменных и передача этих знчений в шаблон, осуществляется так:
+```terraform
+data "template_file" "puma-service" {
+  template = "${file("${path.module}/files/puma.service.tpl")}"
+
+  vars {
+    database_address = "${var.database_url}"
+  }
+}
+```
+Так же в provisioner "file" необходимо изменить параметр source (раньше мы указаывали на уже сформированный файл puma.service) на content (файл создается с помощью шаблона, конфигрируется во время работы terrafrom)
+```terraform
+provisioner "file" {
+    content      = "${data.template_file.puma-service.rendered}"
+...
+```
+
+#### Реестр модулей
+После применения модуля в GCS были созданы два бакета. Имена бакетов пришлось задать иначе, не как в презентации. Иначе выдавалсь ошибка.
+```terraform
+ module "storage-bucket" {
+  source = "SweetOps/storage-bucket/google"
+  version = "0.1.1"
+  name = ["storage-bucket-test-345", "storage-bucket-test2-745"]
+}
+```
 Homework#8 Buzan Kirill
 -----------------------
 **Самостятельное задание выполнено:**
