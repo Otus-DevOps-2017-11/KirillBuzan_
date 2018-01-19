@@ -1,3 +1,205 @@
+Homework#10 Buzan Kirill
+-----------------------
+#### 1. Файл Inventory
+Создал файл inventory в котором задал краткое имя, идентифицирующее хост, и параметры для подключения к этому хосту:
+1) appserver
+```ansible
+appserver ansible_host=35.205.212.75 ansible_user=appuser ansible_private_key=~/.ssh/appuser
+```
+appserver - краткое имя по которому сможем вызвать применение модуля 
+ansible_host - IP-адрес хоста
+ansible_user - Пользователь, под которым будет осуществлено подключение
+ansible_private_key - Путь до приватного SSL-ключа пользователя
+
+2) Добавил в файл inventory еще один хост dbserver
+```ansible
+dbserver ansible_host=104.199.30.219 ansible_user=appuser ansible_provate_key=~/.ssh/appuser
+```
+Файл inventory получился следующего содержания:
+```ansible
+appserver ansible_host=35.205.212.75 ansible_user=appuser ansible_private_key=~/.ssh/appuser
+dbserver ansible_host=104.199.30.219 ansible_user=appuser ansible_provate_key=~/.ssh/appuser
+```
+Применил выполнение модуля ping для указанных  выше хостов.
+1) appserver
+```bash
+ansible appserver -i ./inventory -m ping
+```
+appserver - краткое имя, идентифицирующее хост. Указано в файле inventory 
+-i ключ, который позволяет определить путь до файла inventory
+./inventory - путь до файла inventory, созданного выше
+-m ключ который позволяет вызвать модуль
+ping - подключаемый модуль
+
+2) dbserver
+```bash
+ansible dbserver -i ./inventory -m ping
+```
+Результат выполнения команды:
+1) appserver
+appserver | SUCCESS => {
+  "changed": false,
+  "ping": "pong"
+}
+2) dbserver
+dbserver | SUCCESS => {
+  "changed": false,
+  "ping": "pong"
+}
+
+Модуль ping позволяет произвести тестирование подключения к серверу по протоколу SSH, но при этом на хост никакие изменения не вносятся.
+
+#### 2. Файд ansible.cfg
+В файле inventory указаны хосты и параметры для подключения к ним. Информация дублируется, а так же приходится заполнять каждый параметр для каждого хоста. Поэтому лучше параметры вынести в отдельный конфигурационный файл ansible.cfg
+```ansible
+[defaults]
+inventory = ./inventory
+remote_user = appuser
+private_key_file = ~/.ssh/appuser
+host_key_checking = False
+```
+Параметр **host_key_checking** отвечает за включение/отключение проверки SSH-ключа на удалённом хосте. По умолчанию проверка включена. 
+По умолчанию SSH-клиент при подключении к хосту осуществляют проверку подлинности ключа, если SSH клиент не узнает отпечаток, то он просит подтвердить добавление отпечатка и необходимо набрать yes/no.
+Чтобы избежать проблем при подключении к хосту с помощью ansible (производится автоматиеское подключение), отключаем проверку SSH-ключа.
+
+После создания конфигурационного файла, можно изменить файл inventory, удалив параметры для подключения, оставив только IP-адреса хостов.
+Содержимое файла inventory:
+```ansible
+appserver ansible_host=35.205.212.75
+dbserver ansible_host=104.199.30.219
+```
+Проверим вызов модуля ping
+```bash
+ansible appserver -m ping
+```
+Теперь нам не нужно задавать путь до файла inventory, так как мы его указали в конфигурационном файле ansible.cfg
+Результат:
+ansible appserver -m ping
+appserver | SUCCESS => {
+  "changed": false,
+  "ping": "pong"
+}
+
+ansible dbserver -m ping
+dbserver | SUCCESS => {
+  "changed": false,
+  "ping": "pong"
+}
+
+Содеинение прошло успешно с обоими хостами.
+
+Для выполнения команд на хосте используется модуль command.
+```bash
+ansible appserver -m command -a uptime
+```
+Команда для выполнения передается как аргумент для модуля command. Для этого используется опция **-a**
+
+Результат:
+ansible appserver -m command -a uptime
+appserver | SUCCESS | rc=0 >>
+16:16:50 up 2:14, 1 user, load average: 0.00, 0.00, 0.00
+
+ansible dbserver -m command -a uptime
+dbserver | SUCCESS | rc=0 >>
+16:19:51 up 2:17, 1 user, load average: 0.00, 0.00, 0.00
+
+#### 3. Группы хостов
+Для возможности управления группой хостов внесем изменения в файл inventory
+```ansible
+[app]
+appserver ansible_host=35.205.212.75
+
+[db]
+dbserver ansible_host=104.199.30.219
+```
+Теперь можно вызывать модуль не только для одного хоста, а для группы хостов.
+Например, добавив в группу [app] оба хоста: appserver и dbserver и вызвав команду:
+```bash
+ansible app -m ping
+```
+получим вызов модуля сразу для двух хоств:
+appserver | SUCCESS => {
+  "changed": false,
+  "ping": "pong"
+}
+dbserver | SUCCESS => {
+  "changed": false,
+  "ping": "pong"
+}
+
+Такого же результата можно было добиться, используя команду 
+ansible all -m ping
+Применяется для всех хостов, которые описаны в файле inventory
+
+#### 4. YAML inventory
+Создал файл inventory.yml 
+```YML
+---
+app:
+  hosts:
+    appserver:
+      ansible_host: 35.205.212.75
+db:
+  hosts:
+    dbserver:
+      ansible_host: 104.199.30.219
+...
+```
+
+Вызовем ansible с модулем ping для **группы хостов app**.
+```bash
+ansible app -i ./inventory.yml -m ping
+```
+Результат будет выведен на экран.
+Так же можно вызвать для **всех хостов** вызов модуля:
+```bash
+ansible all -i ./inventory.yml -m ping
+```
+и для **конкретного хоста**:
+```bash
+ansible dbserver -i ./inventory.yml -m ping
+```
+
+#### 5. Задание со звёздочкой. Inventory.json
+Файл json будет выглядеть так:
+```json
+{
+  "app": {
+    "hosts": {
+      "appserver": {
+        "ansible_host": "35.205.212.75"
+	  }	
+    }
+  },
+  "db": {
+    "hosts": {
+      "dbserver": {
+        "ansible_host": "104.199.30.219"
+      }
+    }
+  }
+}
+```
+Выполнил проверку со всеми вариантами:
+**Все хосты**:
+ansible all -i ./inventory.yml -m ping
+**Группа хостов app**:
+ansible app -i ./inventory.yml -m ping
+**Хост appserver**:
+ansible appserver -i ./inventory.yml -m ping
+**Группа хостов db**:
+ansible db -i ./inventory.yml -m ping
+**Хост dbserver**:
+ansible dbserver -i ./inventory.yml -m ping
+
+Результат успешен.
+
+#### 6. Выполнение команд
+Повторены все примеры из домашнего задания пункта "выполнение команд".
+Необходимо правильно использовать команду shell, так как при ее использовании об идентпатентности придется заботиться самим. 
+Т.е. например, если нам необходимо создать каталоги командой, то каталоги будут создаваться каждый раз при использовании shell сриптов. И нам нужно будет контролировать самим этот процесс. Если использовать специальные модули для этого, то проверку состояния наличия каталогов ansible  возьмет на себя.
+
+
 Homework#9 Buzan Kirill
 -----------------------
 #### Импорт существующей инфраструктуры в Terraform
