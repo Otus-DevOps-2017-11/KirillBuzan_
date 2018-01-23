@@ -180,6 +180,18 @@ ansible dbserver -i ./inventory.yml -m ping
   }
 }
 ```
+Для версии ansible 2.0 JSON будет быть задан иначе "ключ": [значение]:
+```json
+{
+    "appserver": {
+        "hosts": ["35.205.212.75"]
+    },
+    "dbserver": {
+        "hosts": ["104.199.30.219"]
+    }
+}
+```
+
 Выполнил проверку со всеми вариантами:
 **Все хосты**:
 ansible all -i ./inventory.json -m ping
