@@ -182,15 +182,19 @@ ansible dbserver -i ./inventory.yml -m ping
 ```
 Выполнил проверку со всеми вариантами:
 **Все хосты**:
-ansible all -i ./inventory.yml -m ping
+ansible all -i ./inventory.json -m ping
+
 **Группа хостов app**:
-ansible app -i ./inventory.yml -m ping
+ansible app -i ./inventory.json -m ping
+
 **Хост appserver**:
-ansible appserver -i ./inventory.yml -m ping
+ansible appserver -i ./inventory.json -m ping
+
 **Группа хостов db**:
-ansible db -i ./inventory.yml -m ping
+ansible db -i ./inventory.json -m ping
+
 **Хост dbserver**:
-ansible dbserver -i ./inventory.yml -m ping
+ansible dbserver -i ./inventory.json -m ping
 
 Результат успешен.
 
