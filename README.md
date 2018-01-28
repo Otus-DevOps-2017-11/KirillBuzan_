@@ -7,32 +7,47 @@ Homework#11 Buzan Kirill
 Один playbook и один сценарий. Для запуска нужных тасков на заданной группе хостов нужно использовать опцию --limit для указания группы хостов и --tags для указания нужных тасков.
 Проблема такого подхода, состоит в том, что необходимо помнить при каждом запуске плейбука, на каком хосте какие таски нужно применить, и передавать это в опциях командной строки.
 Пример:
+``` bash
 ansible-playbook reddit_app_one_play.yml --limit db --tags db-tag
 ansible-playbook reddit_app_one_play.yml --limit app --tags app-tag
 ansible-playbook reddit_app_one_play.yml --limit app --tags deploy-tag
+```
 2) reddit_app_multiple_plays.yml
 Один playbook и несколько сценариев. При таком подход управлять хостами стало немного легче, чем при использовании одного сценария. Теперь для того чтобы применить нужную часть конфигурационного кода (сценарий) к нужной группе хостов достаточно лишь указать
 ссылку на эту часть кода, используя тег.
 Проблема такого полхода: с ростом числа управляемых сервисов, будет возрастать количество различных сценариев и, как результат, увеличится объем плейбука. Это приведет к тому, что в плейбуке, будет сложно разобраться.
 Пример:
+``` bash
 ansible-playbook reddit_app_multiple_plays.yml --tags db-tag
 ansible-playbook reddit_app_multiple_plays.yml --tags app-tag
 ansible-playbook reddit_app_multiple_plays.yml --tags deploy-tag
+```
 3) Несколько плейбуков. 
 При использовании отдельного плейбука теперь нет необходости использовать теги, так как в плейбуке находится только один сценарий. Для запуска необходимо указать только имя плейбука.
+  
   3.1) app.yml
 Пример:
+``` bash
 ansible-playbook app.yml
+```
+  
   3.2) db.yml
 Пример:
+``` bash
 ansible-playbook db.yml
+```
+  
   3.3) deploy.yml
 Пример:
+``` bash
 ansible-playbook deploy.yml
+```
   3.4) site.yml
 Для управления конфигурацией всей нашей инфраструктуры из одного файла, создан файл site.yml. Он включает в себя все остальные плейбуки (app.yml, db.yml, deploy.yml)  
 Пример:
+``` bash
 ansible-playbook site.yml
+```
 
 #### 2. Задание со звездочкой
 В официальной документации ansible предлагают воспользоваться скриптом gce.py и конфигурационным файлом для него gce.ini. http://docs.ansible.com/ansible/latest/guide_gce.html
