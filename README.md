@@ -1,3 +1,179 @@
+Homework#11 Buzan Kirill
+-----------------------
+#### 1. Часть первая
+Выполнено задание в соответствии с домашним заданием "Homework 11. Расширенные возможности Ansible"
+Созданы следующие файлы:
+1) reddit_app_one_play.yml
+Один playbook и один сценарий. Для запуска нужных тасков на заданной группе хостов нужно использовать опцию --limit для указания группы хостов и --tags для указания нужных тасков.
+Проблема такого подхода, состоит в том, что необходимо помнить при каждом запуске плейбука, на каком хосте какие таски нужно применить, и передавать это в опциях командной строки.
+Пример:
+ansible-playbook reddit_app_one_play.yml --limit db --tags db-tag
+ansible-playbook reddit_app_one_play.yml --limit app --tags app-tag
+ansible-playbook reddit_app_one_play.yml --limit app --tags deploy-tag
+2) reddit_app_multiple_plays.yml
+Один playbook и несколько сценариев. При таком подход управлять хостами стало немного легче, чем при использовании одного сценария. Теперь для того чтобы применить нужную часть конфигурационного кода (сценарий) к нужной группе хостов достаточно лишь указать
+ссылку на эту часть кода, используя тег.
+Проблема такого полхода: с ростом числа управляемых сервисов, будет возрастать количество различных сценариев и, как результат, увеличится объем плейбука. Это приведет к тому, что в плейбуке, будет сложно разобраться.
+Пример:
+ansible-playbook reddit_app_multiple_plays.yml --tags db-tag
+ansible-playbook reddit_app_multiple_plays.yml --tags app-tag
+ansible-playbook reddit_app_multiple_plays.yml --tags deploy-tag
+3) Несколько плейбуков. 
+При использовании отдельного плейбука теперь нет необходости использовать теги, так как в плейбуке находится только один сценарий. Для запуска необходимо указать только имя плейбука.
+  3.1) app.yml
+Пример:
+ansible-playbook app.yml
+  3.2) db.yml
+Пример:
+ansible-playbook db.yml
+  3.3) deploy.yml
+Пример:
+ansible-playbook deploy.yml
+  3.4) site.yml
+Для управления конфигурацией всей нашей инфраструктуры из одного файла, создан файл site.yml. Он включает в себя все остальные плейбуки (app.yml, db.yml, deploy.yml)  
+Пример:
+ansible-playbook site.yml
+
+#### 2. Задание со звездочкой
+В официальной документации ansible предлагают воспользоваться скриптом gce.py и конфигурационным файлом для него gce.ini. http://docs.ansible.com/ansible/latest/guide_gce.html
+Cкачать скрипт и конф файл можно с официального репозитория на github:
+https://github.com/ansible/ansible/tree/devel/contrib/inventory
+
+1) Cкачиваем файлы:
+wget https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/gce.py
+wget https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/gce.ini
+
+2) Устанавливаем библиотеки для работы с GCE
+``` bash
+pip install apache-libcloud
+```
+
+3) Предоставлние прав исполнение файла: 
+``` bash
+chmod +x gce.py
+```
+
+Для работы скрипта **gce.py** необходимо:
+1) создать сервисный аккаунт и сгенерировать ключ для него. 
+Выбрал формат json.
+https://console.cloud.google.com/iam-admin/serviceaccounts/project?project=lucky-almanac-188814
+
+2) Скачать сгенерированный файл-ключ. Сегенрирован ключ: Infra-99b176a53b90.json
+
+3) Отредктировать файл gce.ini для конкретного проекта. В репозиторий выложен пример заполнения файла gce.ini.example:
+``` ini
+[gce]
+gce_service_account_email_address = service-account@lucky-almanac.iam.gserviceaccount.com
+gce_service_account_pem_file_path = Infra-99b176a53b90.json
+gce_project_id = lucky-almanac
+gce_zone = europe-west1-b
+[inventory]
+inventory_ip_type = external
+``` 
+
+##### Проверка работоспособности скрипта
+Все аргументы запуска скрипта gce.py можно посмотреть в функции:
+``` python
+def parse_cli_args(self):
+        ''' Command line argument processing '''
+
+        parser = argparse.ArgumentParser(
+            description='Produce an Ansible Inventory file based on GCE')
+        parser.add_argument('--list', action='store_true', default=True,
+                            help='List instances (default: True)')
+        parser.add_argument('--host', action='store',
+                            help='Get all information about an instance')
+        parser.add_argument('--pretty', action='store_true', default=False,
+                            help='Pretty format (default: False)')
+        parser.add_argument(
+            '--refresh-cache', action='store_true', default=False,
+            help='Force refresh of cache by making API requests (default: False - use cache files)')
+        self.args = parser.parse_args()
+```
+
+./gce.py --list
+
+Будет выведен список всех хостов в формате json без форматирования
+
+./gce.py --pretty
+
+Будет выведен список всех хостов в формате json с форматированием
+
+./gce.py --host reddit-app --pretty
+
+Будет выведена всю информация по выбранному инстансу в формате json с форматированием. В данной случае по reddit-app
+
+##### Проверим работу Dynamic Inventory
+``` bash
+ansible all -i gce.py -m ping
+```
+Результат:
+reddit-db | SUCCESS => {
+    "changed": false, 
+    "ping": "pong"
+}
+reddit-app | SUCCESS => {
+    "changed": false, 
+    "ping": "pong"
+}
+
+##### Dynamic Inventory для проекта с несколькими плейбуками 
+Изменим файлы app.yml db.yml deploy.yml для динамического определения хостов.
+Сначала я думал, что нужно будет создавать свою выходную переменную для определния хоста, к чему зацепиться, но потом обнаружил, что переменные tag_reddit-app и tag_reddit-db создаются автоматически и содержат названия хостов.
+В параметр hosts пропишем соответственно:
+**app.yml**
+hosts: tag_reddit-app 
+**db.yml**
+hosts: tag_reddit-db 
+**deploy.yml**
+hosts: tag_reddit-app
+
+Для динамического получения ip-адреса сервера БД воспользуемся конструкцией: 
+db_host: "{{ hostvars['reddit-db']['gce_private_ip'] }}"
+изменим файл **app.yml**
+
+### 3. Provision Packer
+Созданы следующие файлы:
+1) packer/packer_app.json
+Запекание образа производится на основе ubuntu-1604. Provision выполняется с помощью ansible скрипта. Производится установка ruby, bundler, build-essenital и выводится информация о версии установленного ПО. 
+Образ получит название: reddit-app-{{timestamp}}
+Так как в задании со звездочокой был сгенерирован ключ, то для возможности подключения к проекту, необходимо использовать этот ключ:
+"account_file": "{{ user `account_file`}}"
+Переменная определена в файле variables.json
+"account_file": "Infra-99b176a53b90.json"
+
+Так же необходимо создать возможность подключения по ssh (ранее данная возможность была перенесена в задание для terraform при развертывании инстанса).
+В настройках firewall проекта gce создано правило default-allow-ssh
+
+Образ создаем с помощью команды:
+```bash
+packer build -var-file=variables.json packer_app.json
+```
+
+2) packer/packer_db.json
+Запекание образа производится на основе ubuntu-1604. Provision выполняется с помощью ansible скрипта. Производится установка MongoDB, настройка сервиса mongod и выводится информация о состоянии сервиса mongod. 
+Образ получит название: reddit-db-{{timestamp}}
+Для работы с проектом, используется ключ Infra-99b176a53b90.json.
+
+Образ создаем с помощью команды:
+``` bash
+packer build -var-file=variables.json packer_db.json
+```
+
+3) ansible/packer_app.yml
+Производится установка ruby, bundler, build-essenital и выводится информация о версии установленного ПО. 
+
+4) ansible/packer_db.yml
+Производится установка MongoDB, настройка сервиса mongod и выводится информация о состоянии сервиса mongod. 
+
+Для развертывания созданных образов воспользуемся terraform и настроеными перематрами в каталоге /terraform/stage. Перед запуском удалил правило firewall default-allow-ssh
+``` bash
+terraform apply
+```
+
+После развертывания инстансов, запускаем плейбук sity.yml 
+web-приложение успешно развернуто и доступно.
+
 Homework#10 Buzan Kirill
 -----------------------
 #### 1. Файл Inventory
