@@ -1,3 +1,139 @@
+Homework#12 Buzan Kirill
+-----------------------
+#### 1. Роли
+Созданы две роли с помощью конмады 
+```bash
+ansible-galaxy init [имя_роли]
+```
+
+1) app. Каталог /ansible/roles/app
+2) db. Каталог /ansible/roles/db
+
+В роли перенемены таски, шаблоны, переменные и хендлеры
+Для вызова ролей изменены файлы app.yml и db.yml. Теперь эти файлы необходимы только для определения хостов и вызова ролей для этих хостов.
+
+Пересоздана инфраструктура. Выполнен ansible скрипт site.yml. Проверка прошла успешно.
+
+#### 2. Окружения
+Созданы два окржуения:
+1) prod. Промышленная среда. Каталог /environments/prod/
+2) stage. Тестовая среда. Каталоге /environments/stage/
+Для каждой среды определны файлы inventory - где определны хосты
+
+В файле ansible.cfg определен inventory файл который используется по-умолчанию: inventory = ./environments/stage/inventory
+
+Параметризация конфигурации ролей за счет переменных дает нам возможность изменять настройки конфигурации, задавая нужные значения
+переменных. Ansible позволяет задавать переменные для групп хостов, определенных в инвентори файле.
+Произведена параметризация ролей с помощью group_vars. 
+Создан каталог group_vars в каждом каталоге окружения:
+1) /environments/prod/group_vars
+2) /environments/stage/group_vars
+
+Каждый каталог group_vars содержит:
+
+1) app
+
+Определена переменная db_host - внутренний ip-адрес сервера БД. 
+
+2) db
+
+Определена переменная mongo_bind_ip
+
+3) all
+
+Определна переменная env, которая достуна всем хостам. Значение определно в каждом окружении свое: prod или stage соответственно. Необходима для вывода информации об используемом окружении в debug 
+
+#### 3. Организация структуры директорий
+Созданы каталоги:
+1) playbooks - помещены все используемые плейбуки, которые находились в корне каталога ansible.
+2) old - содержит каталоги и файлы, которые был созданы на начальной стадии проекта ansible. Не исользуются в текущей конфигурации проекта.
+
+#### 4. ansible.cfg
+Произведено "улучшение" файла ansible.cfg.
+1) Добавлено определение каталога, где содержатся роли:
+```ansible
+[defaults]
+roles_path = ./roles
+```
+
+2) Отключено создание .retry файлов:
+```asnible
+[defaults]
+retry_files_enabled = False
+```
+
+3) Включим постоянный вывод diff при изменениях. Количество строк контекста - 5.
+```ansible
+[diff]
+always = True
+context = 5
+```
+Проверка осуществлена с применением скрипта ansible site.yml к окржуением stage и prod.
+При использовании окружения prod указан явно файл с inventory:
+```bash
+ansible-playbook -i environments/prod/inventory playbooks/site.yml
+```
+В debug была выведена информация об используемом окружении (prod/stage):
+```
+TASK [db : Show info about the env this host belongs to]
+*********************************************
+ok: [dbserver] => {
+"msg": "This host is in prod environment!!!"
+}
+
+TASK [db : Show info about the env this host belongs to]
+*********************************************
+ok: [dbserver] => {
+"msg": "This host is in stage environment!!!"
+}
+```
+Проверка произведена успешно. 
+
+#### 5. Community roles
+Использована ролья jdauphant.nginx
+```bash
+ansible-galaxy install -r environments/stage/requirements.yml
+```
+Добавлена возможность использовать порт 80, при развертывании инфраструктуры. Изменен модуль app: /terraform/modules/app/main.tf. Так же определны переменные.
+Для переадресации nginx на приложение reddit-app, которое слушает порт 9292, вносятся изменения в переменную app обоих окружений prod и stage.
+После развертывания новой инфраструктуры и прогона скритп site.yml приложение доступно по двум портам: 9292 и 80
+
+#### 6. Задание со звездочкой
+Для работы с динамическоим inventory разнесем gce.py и gce.ini по каталогам окружений: prod и stage.
+Определим inventory по-умолчанию в файле ansible.cfg
+```ansible
+[defaults]
+inventory = ./environments/stage/gce.py
+```
+Изменены плейбуки app.yml и db.yml. Определены несколько хостов, чтобы можно было использовать как динамичыеский инвентори, так и статический:
+app.yml
+```yml
+hosts:
+  - app
+  - tag_reddit-app
+```
+
+db.yml
+```yml
+hosts:
+  - db
+  - tag_reddit-db
+```
+
+Проверка успешна.
+
+Задал переменную db_host конкретным значением: 10.132.0.2
+Не получилось определить переменную db_hosts таким образом:
+db_host: "{{ hostvars['reddit-db']['gce_private_ip'] | default('10.132.0.2') }}"
+
+В случае динамического инвентори все прекрасно работало, в случае статического выдавалась ошибка:
+```ansible
+Ansible все равно выдает ошибку:
+TASK [app : Add config for DB connection] ************************************************
+fatal: [appserver]: FAILED! => {"changed": false, "msg": "AnsibleUndefinedVariable: {{ hostvars['reddit-db']['gce_private_ip'] | default('10.132.0.2') }}: "hostvars['reddit-db']" is undefined"}
+```
+
+
 Homework#11 Buzan Kirill
 -----------------------
 #### 1. Часть первая
