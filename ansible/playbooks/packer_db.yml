@@ -31,6 +31,3 @@
     - name: Debug get status Mongod
       debug: var=mongodstatus
 
-
-
-        

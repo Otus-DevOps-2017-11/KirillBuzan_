@@ -1,0 +1,16 @@
+# Where and how to store data.
+storage:
+  dbPath: /var/lib/mongodb
+  journal:
+    enabled: true
+
+# where to write logging data.
+systemLog:
+  destintation: file
+  logAppnd: true
+  path: /var/log/mongodb/mongod.log
+
+# network interfaces
+net:
+  port: {{ mongo_port | default('270717') }}
+  bindIp: {{ mongo_bind_ip  }}

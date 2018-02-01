@@ -64,3 +64,16 @@ resource "google_compute_firewall" "firewall_puma" {
   source_ranges = "${var.source_ranges}"
   target_tags   = "${var.target_tags}"
 }
+
+resource "google_compute_firewall" "firewall_puma_http" {
+  name    = "allow-puma-http-default"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = "${var.firewall_puma_http_port}"
+  }
+
+  source_ranges = "${var.source_ranges}"
+  target_tags   = "${var.target_tags}"
+}

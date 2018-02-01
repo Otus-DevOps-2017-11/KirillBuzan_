@@ -5,3 +5,4 @@ not_for_otus/
 *.tfvars
 .terraform/
 *.retry
+jdauphant.nginx
