@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "lucky-almanac-188814",
+  "private_key_id": "99b176a53b9071387127068f94c452449564c5b7",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC3GsaWVb7E0psN\nI1xlT/ysik59Clspu2DX3jRhMBi1Wl6GS3G/Zv+sB3xZiNejSXBv6HGq2TYXwsR9\nGiW3V1zL4hDTqMp63o8vyy457UxLcj4j8Urj44a82EtsHwS0034XWmhIIRhhVO30\nrzsCPnJx9d7ptTzcZYL9sUcEwe1SV9x9SAmT55FgTbu9EXPRskhZL+EJeuU5Yhy3\nyI5pRtJf8GIW8VqW1qzwywixQrAJ45QcktFNdp40uic8FmCPeK3jLe7P9HtTbEJs\nUgF0SoUB5O0/FgmQFC0xdjKwiKST9cTF+3eSGdyFjg5jUcOHkgt0pg0mM/BOJz0r\ndzy8duXlAgMBAAECggEAAX9jpnraHSydsW2tavsMo8Oim6cnSAG9CAKFcxlFMSHe\ncv8iQDtvZ6DFtnWmGMFUp64b4siKhr/WJk4hP8lycX6R8EYikSmmAv9d9iybY4Ek\nAlyG9E9hEe/YLPfaiRWIh3TCCd79bPm04fvQJX4w35uTrt2c3tli7JWpMUq9w4mq\nPfCBlvUSz5T5YJlUOTApm7aZcojHkbq7GqKvrTsKWrDWDwLlgttLN0zye5MM4JMR\nI81yv8bGWuOHtW+hKhevOOInPjG7jfcEM162khDcIdX4IFTLjFQHz0zmB3FSoJQ+\n911RhVjDNBupuWMMGAn4g38M5YgCuYnVvDzONmugiQKBgQD59kFyYN2Lxu9C7SCh\nDel3QT5jOy0hYqRUkL9oUlclZMxQQWJWFelhkND4+lzXkqF/3jy5JzXcSgmPJeq5\nOhfYZVENhq59Y+A0Ayn+hyzK3xlBEeoVQBKy7/ZbVwkTb5raeHdGT1qp9lU4tMRo\nEE+VTFICQqgd9oVcMLWBNfxq2QKBgQC7hxRmcygq4f+miGqWNYtihms52FSxkRvr\nZggOyzpTEijs6EW14s5ZZ8dvPB2Zta0djW2C4C6gP5HIbpMpmHH/BchWJHHMQH2i\n5tsfK2vgkVyV1qIfNb2e7NPAokgexFdPylX2A5wcUhMy3ft2rHdop6d/vUOcOAev\nuhctmbzz7QKBgEGWJ94HJJqEfEsnRSR9LgEokWIgKNtVsqCtyktpL4yUQjfcsBy+\naxo6kVqC9tFpnA6dFXnPnAZNNuzkmg43/AG/s+DEsgwcpLuBCQfMGCizGUFFnhIt\nWbqx1AZrc+oxooQoj8NXFwb5p6rVY6OahAc8m1gUfWA/SwbBkR5yN+UhAoGAQAqA\naABZrlNhyBB8PfHpOOtowOdk/QLuQvSkOdEjiO0Btu4XqGbdS2EKla00+qI1jYsX\n5AMFSUqMUaOZdDIQdCQYZ3qotjUr8q7eFAXzIEzkDnOvB/OFXznHktiYwpEQtDoI\nIyzWakGJNuziDIQXf1EJ/bC33yivT07AzZzcD30CgYA2cW+eFlJbl4Gw99k4Tb2K\nZjps2zmYCQAxs3J5mGfBkpS/CuoLQd7V5z/iNvxRCrjWa1nEwWRUWS/OSfxwjMWz\nCh8g3JEkRc6E+kQ+48zgcdQwimJgMAoiiZRb/aHgDgn9SBfodK4XSnFIZixrsg1I\nAv76Sbxxoh2OZTDoLMI0vA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "service-account@lucky-almanac-188814.iam.gserviceaccount.com",
+  "client_id": "110675760142758661066",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/service-account%40lucky-almanac-188814.iam.gserviceaccount.com"
+}
