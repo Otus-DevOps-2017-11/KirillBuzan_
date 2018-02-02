@@ -1,3 +1,5 @@
+https://travis-ci.org/Otus-DevOps-2017-11/KirillBuzan_infra.svg?branch=ansible-3
+
 Homework#12 Buzan Kirill
 -----------------------
 #### 1. Роли
