@@ -28,8 +28,8 @@ install:
   - touch ~/.ssh/appuser.pub && touch ~/.ssh/appuser
   
 script:
-  - packer validate -var-file=packer/variables.json.example packer/db.json
-  - packer validate -var-file=packer/variables.json.example packer/app.json
+  - packer validate -var-file=packer/variables.json.example packer/packer_db.json
+  - packer validate -var-file=packer/variables.json.example packer/packer_app.json
   - ansible-lint ./ansible/playbooks/site.yml
   - cd terraform/${CHOOSE_ENV}
   - terraform init
