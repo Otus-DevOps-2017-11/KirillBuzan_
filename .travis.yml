@@ -27,7 +27,7 @@ install:
   - pip install ansible-lint
   - touch ~/.ssh/appuser.pub && touch ~/.ssh/appuser
   
- script:
+script:
   - packer validate -var-file=packer/variables.json.example packer/db.json
   - packer validate -var-file=packer/variables.json.example packer/app.json
   - ansible-lint ./ansible/playbooks/site.yml
