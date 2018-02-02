@@ -10,8 +10,8 @@ branches:
   - ansible-3
 
 env:
-  - CHOOSE_END=stage
-  - CHOOSE_END=prod  
+  - CHOOSE_ENV=stage
+  - CHOOSE_ENV=prod  
   
 before_install:
   - sudo apt-get -y update
@@ -31,7 +31,7 @@ script:
   - packer validate -var-file=packer/variables.json.example packer/db.json
   - packer validate -var-file=packer/variables.json.example packer/app.json
   - ansible-lint ./ansible/playbooks/site.yml
-  - cd terraform/${CHOOSE_END}
+  - cd terraform/${CHOOSE_ENV}
   - terraform init
   - terraform validate --var-file=terraform.tfvars.example
   - tflint --var-file=terraform.tfvars.example --error-with-issues
