@@ -10,7 +10,7 @@ branches:
   - ansible-3
 
 env:
-  - CHOOSE_ENV=stage
+  - CHOOSE_END=stage
   - CHOOSE_END=prod  
   
 before_install:
@@ -31,7 +31,7 @@ install:
   - packer validate -var-file=packer/variables.json.example packer/db.json
   - packer validate -var-file=packer/variables.json.example packer/app.json
   - ansible-lint ./ansible/playbooks/site.yml
-  - cd terraform/${USE_ENV}
+  - cd terraform/${CHOOSE_END}
   - terraform init
   - terraform validate --var-file=terraform.tfvars.example
   - tflint --var-file=terraform.tfvars.example --error-with-issues
