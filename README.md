@@ -1,4 +1,4 @@
-https://travis-ci.org/Otus-DevOps-2017-11/KirillBuzan_infra.svg?branch=ansible-3
+[![Build Status](https://travis-ci.org/Otus-DevOps-2017-11/KirillBuzan_infra.svg?branch=ansible-3)](https://travis-ci.org/Otus-DevOps-2017-11/KirillBuzan_infra)
 
 Homework#12 Buzan Kirill
 -----------------------
