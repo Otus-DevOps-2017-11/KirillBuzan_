@@ -136,6 +136,7 @@ fatal: [appserver]: FAILED! => {"changed": false, "msg": "AnsibleUndefinedVariab
 ```
 #### 7. Задание со звездочкой 2
 Настроен Travis CI. Создан файл .travis.yml.
+Документация: https://docs.travis-ci.com/user/customizing-the-build/#Building-Specific-Branches
 Столкнулся с проблемой. Необходимо в site.yml использовать import-playbook вместо include. Иначе получаем ошибку, об отсутствии в файлах app.yml и db.yml определения хостов.
 Закомментировал использование файла default.tfstate для terraform c google storage. Возникала ошибка при попытке его получить. Дал права для всех пользователей, но ошибка остаалсь. Пришлось комментировать.
 
