@@ -15,6 +15,7 @@ env:
   
 before_install:
   - sudo apt-get -y update
+  - PWD=$(pwd)
   
 install:
   - wget https://releases.hashicorp.com/packer/1.1.3/packer_1.1.3_linux_amd64.zip
@@ -30,7 +31,8 @@ install:
 script:
   - packer validate -var-file=packer/variables.json.example packer/packer_db.json
   - packer validate -var-file=packer/variables.json.example packer/packer_app.json
-  - ansible-lint ./ansible/playbooks/site.yml
+  - cd ${PWD}/ansible
+  - ansible-lint playbooks/site.yml
   - cd terraform/${CHOOSE_ENV}
   - terraform init
   - terraform validate --var-file=terraform.tfvars.example
