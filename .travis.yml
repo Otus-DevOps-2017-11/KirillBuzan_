@@ -30,7 +30,9 @@ install:
 script:
   - packer validate -var-file=packer/variables.json.example packer/packer_db.json
   - packer validate -var-file=packer/variables.json.example packer/packer_app.json
+  # site.yml must use import_playbook, if use include then get error
   - ansible-lint ./ansible/playbooks/site.yml
+  # use matrix env
   - cd terraform/${CHOOSE_ENV}
   - terraform init
   - terraform validate --var-file=terraform.tfvars.example
