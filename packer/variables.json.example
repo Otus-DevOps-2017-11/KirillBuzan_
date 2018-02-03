@@ -1,5 +1,5 @@
 {
-   "project_id": "lucky-almanac-188814",
+   "project_id": "lucky-almanac",
    "source_image_family": "ubuntu-1604-lts",
    "machine_type": "f1-micro"
 }
