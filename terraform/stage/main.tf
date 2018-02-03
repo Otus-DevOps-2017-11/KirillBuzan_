@@ -4,12 +4,13 @@ provider "google" {
   region  = "${var.region}"
 }
 
-terraform {
-  backend "gcs" {
-    bucket  = "terraform-hm9"
-    prefix  = "terraform/state"
-  }
-}
+# travis
+#terraform {
+#  backend "gcs" {
+#    bucket  = "terraform-hm9"
+#    prefix  = "terraform/state"
+#  }
+#}
 
 locals {
   access_db_tags = ["reddit-app"]
