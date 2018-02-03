@@ -1,4 +1,4 @@
-project = "lucky-almanac-188814"
+project = "lucky-almanac"
 public_key_path = "~/.ssh/appuser.pub"
 disk_image = "reddit-base-1514313816"
 private_key_path = "~/.ssh/appuser"
