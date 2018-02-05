@@ -1,0 +1,6 @@
+---
+# defaults file for db
+
+mongo_bind_ip: 27017
+mongo_port: 127.0.0.1
+env: local

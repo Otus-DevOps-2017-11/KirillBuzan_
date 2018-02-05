@@ -26,6 +26,11 @@ variable firewall_puma_port {
   default     = ["9292"]
 }
 
+variable firewall_puma_http_port {
+  description = "Port for access web-app"
+  default     = ["80"]
+}
+
 variable source_ranges {
   description = "Allowed IP addresses"
   default     = ["0.0.0.0/0"]
