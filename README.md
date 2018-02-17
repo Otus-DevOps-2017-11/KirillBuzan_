@@ -38,6 +38,12 @@ cd ruby-*
 make
 make install
 gem install travis
+
+# При использовании molecule возникла проблема. Requirement.parse('six>=1.10.0') Необходимо было обновить версию six. 
+pip freeze --all
+# версия six = 1.9. Нужна была версия 1.10
+pip install six==1.10
+# после этого molecule стала работать как положено
 ```
 #### 2. Vagrantfile
 В рамках домашней работы был создан файл Vagrantfile для развертывания 2 виртуальных машин(appserver, dbserver).
