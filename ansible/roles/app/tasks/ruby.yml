@@ -1,0 +1,28 @@
+---
+- name: Install ruby, bundler, build-essenital
+  apt: 
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - ruby-full
+    - ruby-bundler
+    - build-essential
+  tags: ruby
+      
+- name: Get version ruby
+  command: ruby -v
+  register: rubyv
+  tags: ruby
+
+- name: Get version bundle
+  command: bundle -v
+  register: bundlev
+  tags: ruby
+      
+- name: Debug get version ruby
+  debug: var=rubyv.stdout 
+  tags: ruby
+
+- name: Debug get version budle
+  debug: var=bundlev.stdout
+  tags: ruby

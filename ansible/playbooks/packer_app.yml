@@ -2,26 +2,5 @@
 - name: Install App Rubby and Bundler
   hosts: all
   become: true
-  tasks:
-    - name: Install ruby, bundler, build-essenital
-      apt: 
-        name: "{{ item }}"
-        state: present
-      with_items:
-        - ruby-full
-        - ruby-bundler
-        - build-essential
-      
-    - name: Get version ruby
-      command: ruby -v
-      register: rubyv
-
-    - name: Get version bundle
-      command: bundle -v
-      register: bundlev
-      
-    - name: Debug get version ruby
-      debug: var=rubyv.stdout 
-
-    - name: Debug get version budle
-      debug: var=bundlev.stdout
+  roles:
+    - app
