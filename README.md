@@ -1,5 +1,116 @@
 [![Build Status](https://travis-ci.org/Otus-DevOps-2017-11/KirillBuzan_infra.svg?branch=ansible-3)](https://travis-ci.org/Otus-DevOps-2017-11/KirillBuzan_infra)
 
+Homework#13 Buzan Kirill
+-----------------------
+Домашнее задание заставило пересмотреть свой подход к выолнению домашних заданий. VirtualBox внутри VirtualBox'a не поднялся, пришлось делить диск и ставить Centos отдельно. Это доставило хлопот, но зато теперь, надеюсь, избавлюсь от описок, потерь, которые иногда происходили при переносе. Теперь в качестве GUI Git'a использую GitKraken, привыкаю к нему.
+Настройка и установка VirualBox, Vagrant, Travis на Centos проблем не вызвала. Заодно повторил настройку всего окружения, включая terraform, packer, git :)))
+На всякий случай сохраню:
+#### 1. Уставнока
+```bash
+sudo yum -y install gcc dkms make qt libgomp patch
+sudo yum -y install kernel-headers kernel-devel binutils glibc-headers glibc-devel font-forge
+
+#VB репозиторий
+install virtualbox
+cd /etc/yum.repos.d/
+wget http://download.virtualbox.org/virtualbox/rpm/rhel/virtualbox.repo
+yum -y install VirtualBox-5.2
+
+# Запуск kernel version
+ls /usr/src/kernels
+uname -r
+
+# build the virtualbox kernel module
+export KERN_DIR=/usr/src/kernels/$(uname -r)
+/sbin/rcvboxdrv setup
+
+# install vagrant
+yum -y install https://releases.hashicorp.com/vagrant/2.0.2/vagrant_2.0.2_x86_64.rpm
+
+# install travis
+# Пришлось ставить ruby для установки gem. ruby пришлось собирать, так как yum install ruby приводило к установке версии 2.0, для установки travis нужна новее, поставил ruby 2.3.1
+yum -y install zlib zlib-devel openssl-devel
+cd /usr/src/
+wget https://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.1.tar.gz --no-check-certificate
+tar -xzvf ruby-2.3.1.tar.gz 
+cd ruby-*
+./configure 
+make
+make install
+gem install travis
+```
+#### 2. Vagrantfile
+В рамках домашней работы был создан файл Vagrantfile для развертывания 2 виртуальных машин(appserver, dbserver).
+Так же создан провиженинг к ролями app и db. 
+
+#### 3. Тест порта 27017
+Для роли db создан дополнительный тест для проверки (ansible/roles/db/molecule/default/tests/test_default.py), что порт 27017 слушается:
+```yml
+# check if db listen 27017 port
+def test_db_listen_port(host):
+    listen_port = host.socket("tcp://0.0.0.0:27017")
+    assert listen_port.is_listening
+```
+
+#### 4. Paker
+Для работы packer с ролями ansible, внес изменения в файлы (каталог packer) packer_app.json и packer_db.json соответственно:
+```json
+    "provisioners": [
+        {
+            "type": "ansible",
+            "extra_arguments": ["--tags","ruby"],
+            "ansible_env_vars": ["ANSIBLE_ROLES_PATH=../ansible/roles"],
+            "playbook_file": "../ansible/playbooks/packer_app.yml"
+        }
+    ]
+```
+```json
+    "provisioners": [
+        {
+            "type": "ansible",
+            "playbook_file": "../ansible/playbooks/packer_db.yml",
+            "extra_arguments": ["--tags","install"],
+            "ansible_env_vars": ["ANSIBLE_ROLES_PATH=../ansible/roles"]
+        }
+    ]
+```
+Иначаче apcker не видел роли.
+
+#### 5. nginx
+Дополнил конфигурацию Vagrant для корректной работы проксирования приложения с помощью nginx в блоке провижининга app.vm.provision:
+Vagrantfile
+```yml
+ansible.extra_vars = {"deploy_user" => "ubuntu",
+        nginx_sites: {
+          default: [
+            "listen 80",
+            "server_name reddit",
+            "location / {proxy_pass http://127.0.0.1:9292;}"
+          ]	
+        }
+      }
+```
+#### 6. Роль db в отдельном репозитории
+Вынес роль db в отдельный репозиторий:
+https://github.com/Otus-DevOps-2017-11/KirillBuzan_infra_db
+
+Протестировал, что роль без проблем скачивается из репозитория. Для этого добавил в файл requirements.yml в каталогах stage и prod:
+```yml
+- src: https://github.com/Otus-DevOps-2017-11/KirillBuzan_infra_db.git
+  name: db
+  version: master
+```
+Установка роли прошла успешно:
+```bash
+ansible-galaxy install -r requirements.yml
+```
+Так как тестированрие будет проводиться для GCE, а не Vagrant выполнил удаление каталога molecule из вынесенной роли db и выполнил переинициализирование molecule:
+```bash
+molecule init scenario --scenario-name default -r db -d gce
+```
+Шаги работы с travis описаны в https://github.com/Otus-DevOps-2017-11/KirillBuzan_infra_db
+
+
 Homework#12 Buzan Kirill
 -----------------------
 #### 1. Роли
