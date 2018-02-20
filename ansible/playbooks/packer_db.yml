@@ -2,32 +2,7 @@
 - name: Install MongoDB
   hosts: all
   become: true
-  tasks:
-    - name: Add repositary key
-      apt_key:
-        keyserver: keyserver.ubuntu.com
-        id: EA312927
+  roles:
+    - db
 
-    - name: Add repositary MongoDB
-      apt_repository:
-        repo: deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse
-        state: present
-
-    - name: Install packages MongoDB
-      apt: 
-        name: "mongodb-org"
-        state: present
-    
-    - name: Enabled MongoDB service 
-      systemd:
-        name: mongod
-        state: started
-        enabled: true
-    
-    - name: Get status Mongod
-      command: systemctl status mongod
-      register: mongodstatus
-
-    - name: Debug get status Mongod
-      debug: var=mongodstatus
 

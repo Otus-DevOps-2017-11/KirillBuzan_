@@ -1,0 +1,6 @@
+{
+   "project_id": "lucky-almanac-188814",
+   "source_image_family": "ubuntu-1604-lts",
+   "machine_type": "f1-micro",
+   "account_file": "Infra-f39439d8afb1.json"
+}

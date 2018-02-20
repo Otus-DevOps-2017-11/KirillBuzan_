@@ -1,3 +1,7 @@
 ---
 - src: jdauphant.nginx
   version: v2.13
+
+- src: https://github.com/Otus-DevOps-2017-11/KirillBuzan_infra_db.git
+  name: db
+  version: master
